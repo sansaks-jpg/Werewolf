@@ -1,0 +1,17 @@
+[Unit]
+Description=Werewolf Bot Control Service
+After=network.target mssql-server.service whatsapp-gateway.service
+Requires=mssql-server.service whatsapp-gateway.service
+
+[Service]
+WorkingDirectory=/home/azureuser/werewolf-bot
+ExecStart=/home/azureuser/werewolf-bot/WerewolfControl
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=werewolf-control
+User=azureuser
+
+[Install]
+WantedBy=multi-user.target

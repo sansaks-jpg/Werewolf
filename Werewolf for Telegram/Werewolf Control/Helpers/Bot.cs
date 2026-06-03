@@ -45,21 +45,52 @@ namespace Werewolf_Control.Helpers
         {
             get
             {
-                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-                UriBuilder uri = new UriBuilder(codeBase);
-                string path = Uri.UnescapeDataString(uri.Path);
-                return Path.GetDirectoryName(path);
+                return AppDomain.CurrentDomain.BaseDirectory;
             }
         }
         internal static string LogDirectory = Path.Combine(RootDirectory, "..\\Logs\\");
         internal delegate void ChatCommandMethod(Update u, string[] args);
         internal static List<Command> Commands = new List<Command>();
-#if DEBUG
-        internal static string LanguageDirectory => Path.GetFullPath(Path.Combine(RootDirectory, @"..\..\..\Languages"));
-#else
-        internal static string LanguageDirectory => Path.GetFullPath(Path.Combine(RootDirectory, @"..\..\Languages"));
-#endif
-        internal static string TempLanguageDirectory => Path.GetFullPath(Path.Combine(RootDirectory, @"..\..\TempLanguageFiles"));
+        internal static string LanguageDirectory
+        {
+            get
+            {
+                var paths = new[]
+                {
+                    Path.Combine(RootDirectory, "Languages"),
+                    Path.Combine(RootDirectory, "../Languages"),
+                    Path.Combine(RootDirectory, "../../Languages"),
+                    Path.Combine(RootDirectory, "../../../Languages")
+                };
+                foreach (var p in paths)
+                {
+                    var fullPath = Path.GetFullPath(p);
+                    if (Directory.Exists(fullPath))
+                        return fullPath;
+                }
+                return Path.GetFullPath(Path.Combine(RootDirectory, "Languages"));
+            }
+        }
+        internal static string TempLanguageDirectory
+        {
+            get
+            {
+                var paths = new[]
+                {
+                    Path.Combine(RootDirectory, "TempLanguageFiles"),
+                    Path.Combine(RootDirectory, "../TempLanguageFiles"),
+                    Path.Combine(RootDirectory, "../../TempLanguageFiles"),
+                    Path.Combine(RootDirectory, "../../../TempLanguageFiles")
+                };
+                foreach (var p in paths)
+                {
+                    var fullPath = Path.GetFullPath(p);
+                    if (Directory.Exists(fullPath))
+                        return fullPath;
+                }
+                return Path.GetFullPath(Path.Combine(RootDirectory, "../TempLanguageFiles"));
+            }
+        }
         public static void Initialize(string updateid = null)
         {
 
@@ -117,7 +148,7 @@ namespace Werewolf_Control.Helpers
 
             Me = Api.GetMeAsync().Result;
             //Api.OnMessage += ApiOnOnMessage;
-            Console.Title += " " + Me.Username;
+            try { Console.Title += " " + Me.Username; } catch { }
             if (!String.IsNullOrEmpty(updateid))
                 Api.SendTextMessageAsync(chatId: updateid, text: "Control updated\n" + Program.GetVersion());
             StartTime = DateTime.UtcNow;

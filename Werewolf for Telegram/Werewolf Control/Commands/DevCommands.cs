@@ -510,26 +510,25 @@ namespace Werewolf_Control
         public static void Usage(Update update, string[] args)
         {
             var msgId = Bot.Send("Please hold, reading values", update.Message.Chat.Id).Result.MessageId;
-            var cpuCount = new PerformanceCounter
+            var proc = Process.GetCurrentProcess();
+            var ram = (proc.WorkingSet64 / (1024 * 1024)) + " MB (Working Set)";
+            var cpu = "N/A (Linux)";
+            
+            // Dapatkan CPU Time sederhana dari process
+            try
             {
-                CategoryName = "Processor",
-                CounterName = "% Processor Time",
-                InstanceName = "_Total"
-            };
-            var cpu = cpuCount.NextValue() + "%";
-            var cpuTimes = new List<int>();
-
-            for (var i = 0; i < 10; i++)
-            {
+                var startCpu = proc.TotalProcessorTime;
+                var startTime = DateTime.UtcNow;
                 Thread.Sleep(500);
-                cpuTimes.Add((int)cpuCount.NextValue());
+                proc.Refresh();
+                var endCpu = proc.TotalProcessorTime;
+                var endTime = DateTime.UtcNow;
+                var usage = (endCpu - startCpu).TotalMilliseconds / ((endTime - startTime).TotalMilliseconds * Environment.ProcessorCount) * 100;
+                cpu = $"{usage:F1}%";
             }
+            catch { }
 
-            var cpuAvg = (int)cpuTimes.Average();
-
-            var ram = new PerformanceCounter("Memory", "Available MBytes").NextValue() + "MB";
-
-            Bot.Edit(update.Message.Chat.Id, msgId, $"CPU Usage: {cpuAvg}%\r\nRAM available: {ram}");
+            Bot.Edit(update.Message.Chat.Id, msgId, $"Process CPU Usage: {cpu}\r\nProcess RAM usage: {ram}");
         }
 
         [Attributes.Command(Trigger = "checkgroups", DevOnly = true)]

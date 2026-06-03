@@ -6,7 +6,7 @@
     <Nullable>disable</Nullable>
     <Deterministic>false</Deterministic>
     <!-- Menghasilkan satu file biner Linux native mandiri -->
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishSingleFile>false</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>

@@ -1,0 +1,8 @@
+{
+  "ProductionAPI": "6285655557214:fake_token_for_whatsapp",
+  "DebugAPI": "6285655557214:fake_token_for_whatsapp",
+  "BetaAPI": "6285655557214:fake_token_for_whatsapp",
+  "BaseUrl": "http://localhost:5000",
+  "BotConnectionString": "metadata=/home/azureuser/werewolf-bot/WerewolfModel.csdl|/home/azureuser/werewolf-bot/WerewolfModel.ssdl|/home/azureuser/werewolf-bot/WerewolfModel.msl;provider=System.Data.SqlClient;provider connection string=\"data source=localhost;initial catalog=werewolf;user id=sa;password=PasswordBotWerewolf123!;MultipleActiveResultSets=True;App=EntityFramework;TrustServerCertificate=True;\"",
+  "DBConnectionString": "data source=localhost;initial catalog=werewolf;user id=sa;password=PasswordBotWerewolf123!;MultipleActiveResultSets=True;TrustServerCertificate=True;"
+}

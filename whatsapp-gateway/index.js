@@ -5,7 +5,8 @@ const {
     default: makeWASocket, 
     useMultiFileAuthState, 
     DisconnectReason,
-    delay
+    delay,
+    fetchLatestBaileysVersion
 } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 
@@ -78,9 +79,19 @@ async function connectToWhatsApp() {
     console.log("Menghubungkan ke WhatsApp...");
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
 
+    let version = [2, 3000, 1015901307]; // Fallback version
+    try {
+        const { version: latestVersion, isLatest } = await fetchLatestBaileysVersion();
+        version = latestVersion;
+        console.log(`Menggunakan WA Web v${version.join('.')}, isLatest: ${isLatest}`);
+    } catch (e) {
+        console.warn("Gagal mengambil versi WA terbaru, menggunakan versi cadangan:", e.message);
+    }
+
     sock = makeWASocket({
         auth: state,
         printQRInTerminal: true,
+        version: version,
         defaultQueryTimeoutMs: undefined
     });
 

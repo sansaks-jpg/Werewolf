@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Text.Json;
 using System.Collections.Generic;
 
 namespace Database
@@ -35,15 +35,12 @@ namespace Database
                 if (File.Exists(configPath))
                 {
                     string json = File.ReadAllText(configPath);
-                    // Match pattern: "key": "value"
-                    var matches = Regex.Matches(json, @"""([^""]+)""\s*:\s*""([^""]*)""");
-                    foreach (Match match in matches)
+                    using (JsonDocument doc = JsonDocument.Parse(json))
                     {
-                        string key = match.Groups[1].Value;
-                        string val = match.Groups[2].Value;
-                        // Unescape simple JSON strings
-                        val = val.Replace("\\\\", "\\").Replace("\\\"", "\"").Replace("\\/", "/").Replace("\\n", "\n").Replace("\\t", "\t");
-                        _config[key] = val;
+                        foreach (JsonProperty prop in doc.RootElement.EnumerateObject())
+                        {
+                            _config[prop.Name] = prop.Value.GetString() ?? "";
+                        }
                     }
                 }
             }

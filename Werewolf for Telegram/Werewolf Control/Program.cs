@@ -19,7 +19,7 @@ namespace Werewolf_Control
     {
         internal static bool Running = true;
         private static bool _writingInfo = false;
-        internal static PerformanceCounter CpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+        internal static object CpuCounter = null;
         internal static float AvgCpuTime;
         ///private static List<float> CpuTimes = new List<float>();
         internal static List<long> MessagesReceived = new List<long>();
@@ -50,7 +50,7 @@ namespace Werewolf_Control
             AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
             {
                 //drop the error to log file and exit
-                using (var sw = new StreamWriter(Path.Combine(Bot.RootDirectory, "..\\Logs\\error.log"), true))
+                using (var sw = new StreamWriter(Path.Combine(Bot.RootDirectory, "../Logs/error.log"), true))
                 {
                     var e = (eventArgs.ExceptionObject as Exception);
                     sw.WriteLine("\n\nCONTROL: UNHANDLED EXCEPTION");
@@ -72,9 +72,25 @@ namespace Werewolf_Control
 #endif
             //get the version of the bot and set the window title
             Assembly assembly = Assembly.GetExecutingAssembly();
-            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            string version = fvi.FileVersion;
-            Console.Title = $"Werewolf Moderator {version}";
+            string version = "1.0.0.0";
+            if (!string.IsNullOrEmpty(assembly.Location))
+            {
+                try
+                {
+                    FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+                    version = fvi.FileVersion;
+                }
+                catch { }
+            }
+            else
+            {
+                var versionAttribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+                if (versionAttribute != null)
+                    version = versionAttribute.InformationalVersion;
+                else
+                    version = assembly.GetName().Version?.ToString() ?? "1.0.0.0";
+            }
+            try { Console.Title = $"Werewolf Moderator {version}"; } catch { }
 
 
             //Make sure another instance isn't already running
@@ -419,11 +435,45 @@ namespace Werewolf_Control
             //this is a bit more tricky, we need to figure out which node folder has the latest version...
             var baseDirectory = Path.Combine(Bot.RootDirectory, ".."); //go up one directory
             var currentChoice = new NodeChoice();
-            foreach (var dir in Directory.GetDirectories(baseDirectory, "*Node*"))
+            foreach (var dir in Directory.GetDirectories(baseDirectory, "*"))
             {
+                if (!Path.GetFileName(dir).Contains("node", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 //get the node exe in this directory
-                var file = Directory.GetFiles(dir, "Werewolf Node.exe").First();
-                Version fvi = Version.Parse(FileVersionInfo.GetVersionInfo(file).FileVersion);
+                var file = Directory.GetFiles(dir, "*")
+                    .FirstOrDefault(x => Path.GetFileName(x).Equals("Werewolf Node.exe", StringComparison.OrdinalIgnoreCase));
+                
+                if (file == null)
+                    continue;
+
+                Version fvi = null;
+                try
+                {
+                    var fileVersion = FileVersionInfo.GetVersionInfo(file).FileVersion;
+                    if (!string.IsNullOrEmpty(fileVersion))
+                        fvi = Version.Parse(fileVersion);
+                }
+                catch { }
+
+                if (fvi == null)
+                {
+                    try
+                    {
+                        var dllFile = Path.Combine(Path.GetDirectoryName(file), "WerewolfNode.dll");
+                        if (File.Exists(dllFile))
+                        {
+                            fvi = System.Reflection.AssemblyName.GetAssemblyName(dllFile).Version;
+                        }
+                    }
+                    catch { }
+                }
+
+                if (fvi == null)
+                {
+                    fvi = new Version(1, 0, 0, 0);
+                }
+
                 if (fvi > currentChoice.Version)
                 {
                     currentChoice.Path = file;
@@ -432,7 +482,19 @@ namespace Werewolf_Control
             }
 
             //now we have the most recent version, launch one
-            Process.Start(currentChoice.Path);
+            if (!string.IsNullOrEmpty(currentChoice.Path))
+            {
+                Process.Start(currentChoice.Path);
+            }
+            else
+            {
+                using (var sw = new StreamWriter(Path.Combine(Bot.RootDirectory, "../Logs/error.log"), true))
+                {
+                    sw.WriteLine("\n\nCONTROL: NEWNODE ERROR");
+                    sw.WriteLine(DateTime.UtcNow);
+                    sw.WriteLine($"Could not find 'Werewolf Node.exe' inside any 'node' directories under: {baseDirectory}");
+                }
+            }
         }
     }
 

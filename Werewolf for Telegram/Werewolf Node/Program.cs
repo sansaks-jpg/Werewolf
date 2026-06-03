@@ -47,11 +47,49 @@ namespace Werewolf_Node
         internal static int TotalPlayers = 0;
         internal static string APIToken;
 #if DEBUG
-        internal static string LanguageDirectory => Path.GetFullPath(Path.Combine(RootDirectory, @"..\..\..\Languages"));
+        internal static string LanguageDirectory => Path.GetFullPath(Path.Combine(RootDirectory, "../../../Languages"));
 #else
-        internal static string LanguageDirectory => Path.GetFullPath(Path.Combine(RootDirectory, @"..\..\Languages"));
+        internal static string LanguageDirectory
+        {
+            get
+            {
+                var paths = new[]
+                {
+                    Path.Combine(RootDirectory, "Languages"),
+                    Path.Combine(RootDirectory, "../Languages"),
+                    Path.Combine(RootDirectory, "../../Languages"),
+                    Path.Combine(RootDirectory, "../../../Languages")
+                };
+                foreach (var p in paths)
+                {
+                    var fullPath = Path.GetFullPath(p);
+                    if (Directory.Exists(fullPath))
+                        return fullPath;
+                }
+                return Path.GetFullPath(Path.Combine(RootDirectory, "Languages"));
+            }
+        }
 #endif
-        internal static string TempLanguageDirectory => Path.GetFullPath(Path.Combine(RootDirectory, @"..\..\TempLanguageFiles"));
+        internal static string TempLanguageDirectory
+        {
+            get
+            {
+                var paths = new[]
+                {
+                    Path.Combine(RootDirectory, "TempLanguageFiles"),
+                    Path.Combine(RootDirectory, "../TempLanguageFiles"),
+                    Path.Combine(RootDirectory, "../../TempLanguageFiles"),
+                    Path.Combine(RootDirectory, "../../../TempLanguageFiles")
+                };
+                foreach (var p in paths)
+                {
+                    var fullPath = Path.GetFullPath(p);
+                    if (Directory.Exists(fullPath))
+                        return fullPath;
+                }
+                return Path.GetFullPath(Path.Combine(RootDirectory, "../TempLanguageFiles"));
+            }
+        }
         internal static Dictionary<string, LangFile> Languages { get; } = new Dictionary<string, LangFile>();
         internal static XDocument English;
         internal const string MasterLanguage = "English.xml";
@@ -64,7 +102,7 @@ namespace Werewolf_Node
             AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
             {
                 var ex = eventArgs.ExceptionObject as Exception;
-                using (var sw = new StreamWriter(Path.Combine(RootDirectory, "..\\Logs\\NodeFatalError.log"), true))
+                using (var sw = new StreamWriter(Path.Combine(RootDirectory, "../Logs/NodeFatalError.log"), true))
                 {
 
                     sw.WriteLine($"{DateTime.Now} - {Version} - {ex.Message}");
@@ -110,7 +148,7 @@ namespace Werewolf_Node
             }
             while (!ClientId.All(x => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".Contains(x)));
             new Thread(KeepAlive).Start();
-            Console.Title = $"{ClientId} - {Version.FileVersion}";
+            try { Console.Title = $"{ClientId} - {Version.FileVersion}"; } catch { }
             Thread.Sleep(-1);
         }
 
@@ -406,9 +444,17 @@ namespace Werewolf_Node
         {
             get
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-                return fvi;
+                try
+                {
+                    Assembly assembly = Assembly.GetExecutingAssembly();
+                    string path = assembly.Location;
+                    if (string.IsNullOrEmpty(path))
+                        path = Process.GetCurrentProcess().MainModule?.FileName;
+                    if (!string.IsNullOrEmpty(path))
+                        return FileVersionInfo.GetVersionInfo(path);
+                }
+                catch { }
+                return null;
             }
         }
 
@@ -416,10 +462,7 @@ namespace Werewolf_Node
         {
             get
             {
-                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-                UriBuilder uri = new UriBuilder(codeBase);
-                string path = Uri.UnescapeDataString(uri.Path);
-                return Path.GetDirectoryName(path);
+                return AppDomain.CurrentDomain.BaseDirectory;
             }
         }
 
