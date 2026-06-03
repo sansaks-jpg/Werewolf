@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlTypes;
@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms.DataVisualization.Charting;
 using System.Xml.Linq;
 using Database;
 using Newtonsoft.Json;
@@ -499,59 +498,7 @@ namespace Werewolf_Control
         [Attributes.Command(Trigger = "test", DevOnly = true)]
         public static void Test(Update update, string[] args)
         {
-            Bot.Send("Please hold, creating chart...", update.Message.Chat.Id);
-
-            using (var chart = new Chart())
-            {
-                //var gameSeries = chart.Series.Add("Games");
-                var playerSeries = chart.Series.Add("Players");
-                var title = chart.Titles.Add("Usage per month over time");
-                var chartArea = chart.ChartAreas.Add("Area");
-                var legend = chart.Legends.Add("Legend");
-
-                chart.Width = 5000;
-                chart.Height = 2000;
-
-                //gameSeries.ChartType = SeriesChartType.Spline;
-                //gameSeries.BorderWidth = 30;
-                //gameSeries.IsVisibleInLegend = true;
-
-                playerSeries.ChartType = SeriesChartType.Spline;
-                playerSeries.BorderWidth = 30;
-                playerSeries.IsVisibleInLegend = true;
-
-                title.Font = new Font(FontFamily.GenericSansSerif, 100);
-
-                chartArea.AxisX.LabelStyle.Font = new Font(FontFamily.GenericSansSerif, 80);
-                chartArea.AxisY.LabelStyle.Font = new Font(FontFamily.GenericSansSerif, 80);
-
-                legend.Font = new Font(FontFamily.GenericSansSerif, 80);
-                legend.Enabled = true;
-
-                using (var db = new WWContext())
-                {
-                    for (DateTime month = new DateTime(2016, 04, 01); month < DateTime.UtcNow.Date; month = month.AddMonths(1))
-                    {
-                        var next = month.AddMonths(1);
-
-                        var monthName = month.ToString("M/y");
-                        var games = db.Games.Where(x => x.TimeStarted >= month && x.TimeStarted < next);
-
-                        //gameSeries.Points.AddXY(monthName, games.Count());
-                        playerSeries.Points.AddXY(monthName, games.Sum(x => x.GamePlayers.Count));
-                    }
-                }
-
-                using (var fs = new FileStream("Test.jpg", FileMode.Create))
-                {
-                    chart.SaveImage(fs, ChartImageFormat.Jpeg);
-                }
-
-                using (var fs = new FileStream("Test.jpg", FileMode.Open))
-                {
-                    Bot.Api.SendPhotoAsync(chatId: update.Message.Chat.Id, photo: new InputFile(fs, "Chart.jpg"), messageThreadId: update.Message.MessageThreadId).Wait();
-                }
-            }
+            Bot.Send("Fitur grafik test dinonaktifkan untuk kompatibilitas Linux.", update.Message.Chat.Id);
         }
 
         /// <summary>
