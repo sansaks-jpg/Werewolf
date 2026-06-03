@@ -1,0 +1,8 @@
+{
+  "ProductionAPI": "TOKEN_BOT_WHATSAPP_ATAU_TELEGRAM_ANDA",
+  "DebugAPI": "TOKEN_BOT_DEBUG",
+  "BetaAPI": "TOKEN_BOT_BETA",
+  "BaseUrl": "http://localhost:5000",
+  "BotConnectionString": "metadata=res://*/WerewolfModel.csdl|res://*/WerewolfModel.ssdl|res://*/WerewolfModel.msl;provider=System.Data.SqlClient;provider connection string=\"data source=ALAMAT_SERVER_SQL;initial catalog=werewolf;user id=USER_DATABASE;password=PASSWORD_DATABASE;MultipleActiveResultSets=True;App=EntityFramework\"",
+  "DBConnectionString": "data source=ALAMAT_SERVER_SQL;initial catalog=werewolf;user id=USER_DATABASE;password=PASSWORD_DATABASE;MultipleActiveResultSets=True;"
+}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
@@ -84,21 +84,23 @@ namespace Werewolf_Node
             SetTimer();
 
 
-            //get api token from registry
-            var key =
-                    RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64)
-                        .OpenSubKey("SOFTWARE\\Werewolf");
-
+            //get api token from registry / config.json
 #if DEBUG
-            APIToken = key.GetValue("DebugAPI").ToString();
+            APIToken = Database.RegHelper.GetRegValue("DebugAPI");
 #elif RELEASE
-            APIToken = key.GetValue("ProductionAPI").ToString();
+            APIToken = Database.RegHelper.GetRegValue("ProductionAPI");
 #elif RELEASE2
-            APIToken = key.GetValue("ProductionAPI2").ToString();
+            APIToken = Database.RegHelper.GetRegValue("ProductionAPI2");
 #elif BETA
-            APIToken = key.GetValue("BetaAPI").ToString();
+            APIToken = Database.RegHelper.GetRegValue("BetaAPI");
 #endif
-            Bot = new TelegramBotClient(APIToken);
+            string baseUrl = Database.RegHelper.GetRegValue("BaseUrl");
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                baseUrl = "https://api.telegram.org";
+            }
+            var options = new TelegramBotClientOptions(token: APIToken, baseUrl: baseUrl);
+            Bot = new TelegramBotClient(options);
             
             Bot.OnMakingApiRequest += Bot_OnMakingApiRequest;
             Me = Bot.GetMeAsync().Result;

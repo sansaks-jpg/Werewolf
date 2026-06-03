@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -63,20 +63,23 @@ namespace Werewolf_Control.Helpers
         public static void Initialize(string updateid = null)
         {
 
-            //get api token from registry
-            var key =
-                    RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64)
-                        .OpenSubKey("SOFTWARE\\Werewolf");
+            //get api token from registry / config.json
 #if DEBUG
-            TelegramAPIKey = key.GetValue("DebugAPI").ToString();
+            TelegramAPIKey = Database.RegHelper.GetRegValue("DebugAPI");
 #elif RELEASE
-            TelegramAPIKey = key.GetValue("ProductionAPI").ToString();
+            TelegramAPIKey = Database.RegHelper.GetRegValue("ProductionAPI");
 #elif RELEASE2
-            TelegramAPIKey = key.GetValue("ProductionAPI2").ToString();
+            TelegramAPIKey = Database.RegHelper.GetRegValue("ProductionAPI2");
 #elif BETA
-            TelegramAPIKey = key.GetValue("BetaAPI").ToString();
+            TelegramAPIKey = Database.RegHelper.GetRegValue("BetaAPI");
 #endif
-            Api = new TelegramBotClient(TelegramAPIKey);
+            string baseUrl = Database.RegHelper.GetRegValue("BaseUrl");
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                baseUrl = "https://api.telegram.org";
+            }
+            var options = new TelegramBotClientOptions(token: TelegramAPIKey, baseUrl: baseUrl);
+            Api = new TelegramBotClient(options);
             //#if !BETA
             //            Api.Timeout = TimeSpan.FromSeconds(1.5);
             //#else
